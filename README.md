@@ -3,6 +3,37 @@
 =======
 # Shopify App Template for Node
 
+# Shopify Subscription App
+
+## Overview How to install
+This Shopify subscription app allows store owners to manage subscriptions directly from their Shopify admin panel. It includes features for user authentication, subscription management, recurring billing, customer notifications, and analytics.
+
+## Table of Contents
+- [Installation](#installation)
+- [Setup](#setup)
+- [Features](#features)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Installation
+
+### Prerequisites
+Before you begin, ensure you have the following installed on your local machine:
+- [Node.js](https://nodejs.org/) (Version 14.x or higher)
+- [Shopify CLI](https://shopify.dev/cli)
+
+### Step-by-Step Setup
+
+1. **Install Node.js**:
+   Download and install Node.js from the [official website](https://nodejs.org/).
+
+2. **Install Shopify CLI**:
+   Open your terminal and run the following command to install the Shopify Command Line Interface (CLI):
+   ```bash
+   npm install -g @shopify/cli @shopify/app
+
+
+
 This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using Node and React. It contains the basics for building a Shopify app.
 
 Rather than cloning this repo, you can use your preferred package manager and the Shopify CLI with [these steps](#installing-the-template).

@@ -115,60 +115,23 @@ app.get("/api/products", async (req, res) => {
 const plans = [];
 
 // Handle creating a subscription plan
-// app.post("/api/plans", async (req, res) => {
-//   const { selling_plan_group } = req.body;
-//   console.log('Received selling_plan_group data:', req.body);
-
-//   if (!selling_plan_group || !selling_plan_group.name || !selling_plan_group.selling_plans) {
-//     return res.status(400).send({ error: 'Invalid selling plan group data' });
-//   }
-
-//   const newPlan = {
-//     id: Date.now(),
-//     selling_plan_group,
-//   };
-
-//   plans.push(newPlan);
-//   res.status(201).json(newPlan);
-// });
-// Handle creating a subscription plan
-// Create a new route to handle the plan creation
-app.post('/api/plans', async (req, res) => {
+app.post("/api/plans", async (req, res) => {
   const { selling_plan_group } = req.body;
+  console.log('Received selling_plan_group data:', req.body);
 
-  // Destructure and extract the plan data from the request
-  const { name: planTitle, selling_plans } = selling_plan_group;
-  const { name: purchaseOptionTitle, price_adjustments, delivery_policy } = selling_plans[0];
-
-  // Extract discount and delivery information
-  const { adjustment_type, value } = price_adjustments[0];
-  const { interval, interval_count } = delivery_policy;
-
-  // Insert the data into the database using a MySQL connection
-  try {
-    const connection = await db.getConnection();
-
-    // Insert into 'plans' table
-    const planResult = await connection.execute(
-      'INSERT INTO plans (title, purchase_option_title, discount_type, discount_value, delivery_interval, delivery_frequency) VALUES (?, ?, ?, ?, ?, ?)',
-      [planTitle, purchaseOptionTitle, adjustment_type, value, interval, interval_count]
-    );
-    const planId = planResult[0].insertId;
-
-    // Commit the transaction and release the connection
-    connection.release();
-
-    res.status(201).json({ message: 'Plan created successfully!', planId });
-  } catch (error) {
-    console.error('Error inserting plan:', error);
-    res.status(500).json({ error: 'Failed to create plan' });
+  if (!selling_plan_group || !selling_plan_group.name || !selling_plan_group.selling_plans) {
+    return res.status(400).send({ error: 'Invalid selling plan group data' });
   }
+
+  const newPlan = {
+    id: Date.now(),
+    selling_plan_group,
+  };
+
+  plans.push(newPlan);
+  res.status(201).json(newPlan);
 });
 
-// Start your Express server (make sure to set your PORT and DB credentials in .env)
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server is running on port ${process.env.PORT || 3000}`);
-});
 
 // Handle fetching all subscription plans
 app.get("/api/plans", async (req, res) => {

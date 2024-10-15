@@ -54,14 +54,14 @@ export function CreatePlanForm({ onPlanSubmit }) {
         selling_plans: [
           {
             name: purchaseOptionTitle,
-            price_adjustments: [{ adjustment_type: discountType, value: parseInt(percentageOff) }],
+            price_adjustments: [{ adjustment_type: 'percentage', value: parseInt(percentageOff) }],
             delivery_policy: {
               interval: deliveryInterval,
               interval_count: parseInt(deliveryFrequency),
             },
           },
         ],
-        products: selectedProducts.map((product) => product.id), // This will be ignored for now
+        products: selectedProducts.map((product) => product.id),
       },
     };
     console.log('Submitting plan:', planData);
@@ -88,22 +88,12 @@ export function CreatePlanForm({ onPlanSubmit }) {
         setDeliveryFrequency(1);
         setDeliveryInterval('weeks');
       } else {
-        let errorData;
-        try {
-          errorData = await response.json(); // Try to parse error response
-        } catch (parseError) {
-          console.error('Error parsing error response:', parseError);
-          errorData = { error: 'Unexpected error occurred' }; // Fallback message
-        }
-        console.error('Error creating plan:', response.statusText, errorData);
-        alert(`Error creating plan: ${errorData.error || response.statusText}`);
+        console.error('Error creating plan:', response.statusText);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert(`Error submitting form: ${error.message}`);
     }
   };
-
 
   const handleProductSelect = (product) => {
     const isSelected = selectedProducts.some(p => p.id === product.id);
