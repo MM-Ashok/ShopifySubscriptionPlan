@@ -1,0 +1,35 @@
+<div class="purchase-options">
+  <h3>{{ block.settings.text }}</h3>
+  <div>
+    <input type="radio" id="one-time-purchase" name="purchaseOption" value="one-time" checked>
+    <label for="one-time-purchase">One-time purchase</label>
+  </div>
+
+    <div>
+      <input type="radio" id="subscription-{{ subscription_option.id }}" name="purchaseOption" value="{{ subscription_option.id }}">
+      <label for="subscription-{{ subscription_option.id }}">
+        Subscribe and save {{ subscription_option.name }} <br>
+        Delivery every {{ subscription_option.delivery_frequency }}, ₹{{ subscription_option.discount }} off
+      </label>
+    </div>
+</div>
+
+
+
+
+{% schema %}
+  {
+    "name": "Mirai Subscription",
+    "target": "section",
+    "stylesheet": "sub-app.css",
+    "javascript": "sub-app.js",
+    "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Text block",
+          "label": "Text"
+        }
+    ]
+  }
+{% endschema %}
