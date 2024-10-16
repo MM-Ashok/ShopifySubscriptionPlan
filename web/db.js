@@ -1,14 +1,15 @@
-import mysql from 'mysql2';
+// db.js
+const mysql = require('mysql2');
 
+// Create a MySQL connection pool
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_NAME || 'shopify_subscription_app',
+  host: 'localhost',  // Replace with your DB host
+  user: 'root',       // Replace with your DB username
+  password: '', // Replace with your DB password
+  database: 'shopify_subscription_app', // Replace with your DB name
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
-// Export as a named export
-export const db = pool.promise();
+module.exports = pool.promise();

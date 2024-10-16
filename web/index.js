@@ -7,7 +7,7 @@ import serveStatic from "serve-static";
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
-import { db } from './db.js';  // Use named import
+import mongoose from "mongoose";
 
 
 const PORT = parseInt(
@@ -41,6 +41,27 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 app.use("/subdata/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
+
+// Conection with mongoose
+
+// Connect to MongoDB
+const mongoURI = "mongodb+srv://ranjeetgautam498:Y96LTNUCUTlfKg9j@shopifysubscription.ebrke.mongodb.net/shopify_subscription_app";
+
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log("-- Connected to Mongo successfully --");
+})
+.catch((error) => {
+    console.error("-- Mongo connection error: ", error);
+});
+
+// Mongoose connection error event handler
+mongoose.connection.on('error', (err) => {
+    console.error('Mongoose connection error:', err);
+});
 
 app.get("/subdata/subscription", async (req, res) => {
   try {

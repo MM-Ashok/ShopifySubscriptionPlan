@@ -3,7 +3,7 @@
 client_id = "9da8c11d2cd88979e1decd67aade27fe"
 name = "Subscription Managments App"
 handle = "subscription-managments-app"
-application_url = "https://cables-investment-flickr-endorsed.trycloudflare.com"
+application_url = "https://fingers-assisted-mistakes-conservation.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,read_products,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://cables-investment-flickr-endorsed.trycloudflare.com/auth/callback",
-  "https://cables-investment-flickr-endorsed.trycloudflare.com/auth/shopify/callback",
-  "https://cables-investment-flickr-endorsed.trycloudflare.com/api/auth/callback"
+  "https://fingers-assisted-mistakes-conservation.trycloudflare.com/auth/callback",
+  "https://fingers-assisted-mistakes-conservation.trycloudflare.com/auth/shopify/callback",
+  "https://fingers-assisted-mistakes-conservation.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

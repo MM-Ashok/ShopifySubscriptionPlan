@@ -19,6 +19,7 @@
     "@shopify/app-bridge": "^3.7.10",
     "@shopify/app-bridge-react": "^4.1.5",
     "@shopify/app-bridge-utils": "^3.5.1",
+    "mongoose": "^8.7.1",
     "mysql2": "^3.11.3"
   },
   "author": "ranjeetsingh",
