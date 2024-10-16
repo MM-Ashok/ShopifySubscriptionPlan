@@ -48,13 +48,23 @@ export function CreatePlanForm({ onPlanSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    let priceAdjustment = {};
+    if (discountType === 'percentage') {
+      priceAdjustment = { adjustment_type: 'percentage', value: parseInt(percentageOff) };
+    } else if (discountType === 'amount') {
+      priceAdjustment = { adjustment_type: 'amount', value: parseInt(percentageOff) };
+    } else if (discountType === 'flat') {
+      priceAdjustment = { adjustment_type: 'flat', value: parseInt(percentageOff) };
+    }
+
     const planData = {
       selling_plan_group: {
         name: planTitle,
         selling_plans: [
           {
             name: purchaseOptionTitle,
-            price_adjustments: [{ adjustment_type: 'percentage', value: parseInt(percentageOff) }],
+            price_adjustments: [priceAdjustment],
             delivery_policy: {
               interval: deliveryInterval,
               interval_count: parseInt(deliveryFrequency),
@@ -192,11 +202,11 @@ export function CreatePlanForm({ onPlanSubmit }) {
                   onChange={() => setDiscountType('flat')}
                 />
                 <TextField
-                  label="Percentage off"
+                  label={discountType === 'percentage' ? "Percentage off" : discountType === 'amount' ? "Amount off" : "Flat rate"}
                   value={percentageOff}
                   onChange={setPercentageOff}
                   type="number"
-                  placeholder="Enter percentage off"
+                  placeholder={discountType === 'flat' ? "Enter flat rate" : `Enter ${discountType === 'percentage' ? "percentage" : "amount"} off`}
                 />
                 <TextField
                   label="Delivery frequency"
@@ -220,8 +230,11 @@ export function CreatePlanForm({ onPlanSubmit }) {
           <Layout.Section>
             <div>
               <p><strong>Summary</strong></p>
-              <p>No title</p>
+              <p>{planTitle || "No title"}</p>
               <p>Delivery every {deliveryFrequency} {deliveryInterval}</p>
+              <p>
+                {offerDiscount && `Offer: ${discountType === 'percentage' ? percentageOff + "% off" : discountType === 'amount' ? `$${percentageOff} off` : `Flat rate: $${percentageOff}`}`}
+              </p>
             </div>
           </Layout.Section>
 
