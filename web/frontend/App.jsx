@@ -3,6 +3,8 @@ import { AppProvider, Frame, Navigation } from '@shopify/polaris';
 import HomePage from './pages/index';
 import EditPlan from './pages/EditPlan';
 import CreatePlan from './pages/CreatePlan';
+import Settings from './pages/Settings';
+
 import '@shopify/polaris/build/esm/styles.css';
 
 import { HomeMajor, ProductsMajor, SettingsMajor } from '@shopify/polaris-icons';
@@ -54,6 +56,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/createplan" element={<CreatePlan />} />
               <Route path="/edit/:id" element={<EditPlan />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
         </Frame>

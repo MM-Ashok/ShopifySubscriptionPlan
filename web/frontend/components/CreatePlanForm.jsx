@@ -48,30 +48,20 @@ export function CreatePlanForm({ onPlanSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    let priceAdjustment = {};
-    if (discountType === 'percentage') {
-      priceAdjustment = { adjustment_type: 'percentage', value: parseInt(percentageOff) };
-    } else if (discountType === 'amount') {
-      priceAdjustment = { adjustment_type: 'amount', value: parseInt(percentageOff) };
-    } else if (discountType === 'flat') {
-      priceAdjustment = { adjustment_type: 'flat', value: parseInt(percentageOff) };
-    }
-
     const planData = {
       selling_plan_group: {
         name: planTitle,
         selling_plans: [
           {
             name: purchaseOptionTitle,
-            price_adjustments: [priceAdjustment],
+            price_adjustments: [{ adjustment_type: discountType, value: parseInt(percentageOff) }],
             delivery_policy: {
               interval: deliveryInterval,
               interval_count: parseInt(deliveryFrequency),
             },
           },
         ],
-        products: selectedProducts.map((product) => product.id),
+        products: selectedProducts.map((product) => product.id), // This will be ignored for now
       },
     };
     console.log('Submitting plan:', planData);
@@ -98,12 +88,22 @@ export function CreatePlanForm({ onPlanSubmit }) {
         setDeliveryFrequency(1);
         setDeliveryInterval('weeks');
       } else {
-        console.error('Error creating plan:', response.statusText);
+        let errorData;
+        try {
+          errorData = await response.json(); // Try to parse error response
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          errorData = { error: 'Unexpected error occurred' }; // Fallback message
+        }
+        console.error('Error creating plan:', response.statusText, errorData);
+        alert(`Error creating plan: ${errorData.error || response.statusText}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      alert(`Error submitting form: ${error.message}`);
     }
   };
+
 
   const handleProductSelect = (product) => {
     const isSelected = selectedProducts.some(p => p.id === product.id);
@@ -202,11 +202,11 @@ export function CreatePlanForm({ onPlanSubmit }) {
                   onChange={() => setDiscountType('flat')}
                 />
                 <TextField
-                  label={discountType === 'percentage' ? "Percentage off" : discountType === 'amount' ? "Amount off" : "Flat rate"}
+                  label="Percentage off"
                   value={percentageOff}
                   onChange={setPercentageOff}
                   type="number"
-                  placeholder={discountType === 'flat' ? "Enter flat rate" : `Enter ${discountType === 'percentage' ? "percentage" : "amount"} off`}
+                  placeholder="Enter percentage off"
                 />
                 <TextField
                   label="Delivery frequency"
@@ -230,11 +230,8 @@ export function CreatePlanForm({ onPlanSubmit }) {
           <Layout.Section>
             <div>
               <p><strong>Summary</strong></p>
-              <p>{planTitle || "No title"}</p>
+              <p>No title</p>
               <p>Delivery every {deliveryFrequency} {deliveryInterval}</p>
-              <p>
-                {offerDiscount && `Offer: ${discountType === 'percentage' ? percentageOff + "% off" : discountType === 'amount' ? `$${percentageOff} off` : `Flat rate: $${percentageOff}`}`}
-              </p>
             </div>
           </Layout.Section>
 
