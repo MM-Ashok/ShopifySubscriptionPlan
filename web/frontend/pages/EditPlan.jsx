@@ -24,11 +24,14 @@ export default function EditPage() {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);  // Available products
 
+  // Add the shopOrigin or shop parameter (assuming it's coming from a global state, session, or environment variable)
+  const shopOrigin = "https://cm-menu.myshopify.com/";  // Replace with actual shop name from session or state
+
   // Fetch plan details when the component mounts
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const res = await fetch(`/api/plans/${id}`);
+        const res = await fetch(`/api/plans/${id}?shop=${encodeURIComponent(shopOrigin)}`);
         if (res.ok) {
           const data = await res.json();
           console.log('Plan data:', data);
@@ -36,23 +39,24 @@ export default function EditPage() {
           setPlan(data);
 
           // Populate fields with fetched data
-          setPlanTitle(data.selling_plan_group.name);
-          setPurchaseOptionTitle(data.selling_plan_group.selling_plans[0].name);
+          setPlanTitle(data.name);
+          setPurchaseOptionTitle(data.selling_plans[0].name);
 
           // Set discount data
-          const priceAdjustments = data.selling_plan_group.selling_plans[0].price_adjustments;
+          const priceAdjustments = data.selling_plans[0].price_adjustments;
           if (priceAdjustments.length > 0 && priceAdjustments[0].adjustment_type === 'percentage') {
             setOfferDiscount(true);
             setPercentageOff(priceAdjustments[0].value.toString());
           }
 
           // Set delivery frequency and interval
-          const deliveryPolicy = data.selling_plan_group.selling_plans[0].delivery_policy;
+          const deliveryPolicy = data.selling_plans[0].delivery_policy;
           setDeliveryFrequency(deliveryPolicy.interval_count.toString());
           setDeliveryInterval(deliveryPolicy.interval);
 
           // Set selected products
-          setSelectedProducts(data.selling_plan_group.products || []);
+          const test = setSelectedProducts(data.product_names || []);
+          console.log('setSelectedProducts :', test );
 
           // Set all products from product_names field
           setAllProducts(data.product_names || []);
@@ -68,7 +72,7 @@ export default function EditPage() {
     };
 
     fetchPlan();
-  }, [id]);
+  }, [id, shopOrigin]);
 
   // Toggle product selection
   const toggleProductSelection = (productId) => {
@@ -101,7 +105,7 @@ export default function EditPage() {
     };
 
     try {
-      const res = await fetch(`/api/plans/${id}`, {
+      const res = await fetch(`/api/plans/${id}?shop=${encodeURIComponent(shopOrigin)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

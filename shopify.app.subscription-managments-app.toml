@@ -3,7 +3,7 @@
 client_id = "9da8c11d2cd88979e1decd67aade27fe"
 name = "Subscription Managments App"
 handle = "subscription-managments-app"
-application_url = "https://gonna-jacket-auctions-humanity.trycloudflare.com"
+application_url = "https://experiments-tabs-evaluation-netscape.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,read_products,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://gonna-jacket-auctions-humanity.trycloudflare.com/auth/callback",
-  "https://gonna-jacket-auctions-humanity.trycloudflare.com/auth/shopify/callback",
-  "https://gonna-jacket-auctions-humanity.trycloudflare.com/api/auth/callback"
+  "https://experiments-tabs-evaluation-netscape.trycloudflare.com/auth/callback",
+  "https://experiments-tabs-evaluation-netscape.trycloudflare.com/auth/shopify/callback",
+  "https://experiments-tabs-evaluation-netscape.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

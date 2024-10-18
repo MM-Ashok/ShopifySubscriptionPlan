@@ -23,7 +23,7 @@ export default function HomePage() {
         const res = await fetch('/api/plans');
         if (res.ok) {
           const data = await res.json();
-          console.log('here All', data );
+          console.log('Fetched plans:', data);
           setPlans(data);
         } else {
           console.error('Failed to fetch plans');
@@ -39,13 +39,30 @@ export default function HomePage() {
   }, []);
 
   // Handle removing a plan
+  // const handleRemove = async (selectedIds) => {
+  //   try {
+  //     await Promise.all(
+  //       selectedIds.map(async (planId) => {
+  //         const res = await fetch(`/api/plans/${planId}`, { method: 'DELETE' });
+  //         if (res.ok) {
+  //           setPlans(plans.filter(plan => plan._id !== planId));
+  //         } else {
+  //           console.error('Failed to remove plan');
+  //         }
+  //       })
+  //     );
+  //   } catch (error) {
+  //     console.error('Error removing plans:', error);
+  //   }
+  // };
+// Handle removing a plan
   const handleRemove = async (selectedIds) => {
     try {
       await Promise.all(
         selectedIds.map(async (planId) => {
           const res = await fetch(`/api/plans/${planId}`, { method: 'DELETE' });
           if (res.ok) {
-            setPlans(plans.filter(plan => plan.id !== planId));
+            setPlans(plans.filter(plan => plan._id !== planId)); // Use _id
           } else {
             console.error('Failed to remove plan');
           }
@@ -67,32 +84,28 @@ export default function HomePage() {
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(plans);
 
-    const rowMarkup = plans.map((plan, index) => (
-      <IndexTable.Row
-        id={plan.id}
-        key={plan.id}
-        selected={selectedResources.includes(plan.id)}
-        position={index}
-        onClick={() => handleRowClick(plan.id)} // Navigate on row click
-      >
-        <IndexTable.Cell>
-          <TextStyle variation="strong">{plan.selling_plan_group.name}</TextStyle>
-        </IndexTable.Cell>
-        <IndexTable.Cell>
-          {plan.product_names[0].name || "Unknown Product"}
-        </IndexTable.Cell>
-        <IndexTable.Cell>
-          {plan.selling_plan_group.selling_plans[0].name}
-        </IndexTable.Cell>
-        <IndexTable.Cell>
-          {plan.selling_plan_group.delivery_frequency}
-        </IndexTable.Cell>
-        <IndexTable.Cell>
-          {plan.selling_plan_group.discount}%
-        </IndexTable.Cell>
-      </IndexTable.Row>
-    ));
-
+  const rowMarkup = plans.map((plan, index) => (
+    <IndexTable.Row
+      id={plan._id}
+      key={plan._id}
+      selected={selectedResources.includes(plan._id)}
+      position={index}
+      onClick={() => handleRowClick(plan._id)} // Navigate on row click
+    >
+      <IndexTable.Cell>
+        <TextStyle variation="strong">{plan.name}</TextStyle>
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        {plan.product_names.length > 0 ? plan.product_names[0].name : "Unknown Product"}
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        {plan.selling_plans.length > 0 ? plan.selling_plans[0].name : "No Plan"}
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        {plan.selling_plans.length > 0 ? `${plan.selling_plans[0].delivery_policy.interval_count} ${plan.selling_plans[0].delivery_policy.interval}` : "N/A"}
+      </IndexTable.Cell>
+    </IndexTable.Row>
+  ));
 
   // Bulk Actions (for deleting selected plans)
   const bulkActions = [
@@ -123,8 +136,8 @@ export default function HomePage() {
                     headings={[
                       { title: 'Plan title' },
                       { title: 'Products' },
+                      { title: 'Selling Plan' },
                       { title: 'Delivery frequency' },
-                      { title: 'Discount' },
                     ]}
                   >
                     {rowMarkup}

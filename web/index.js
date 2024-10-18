@@ -7,7 +7,8 @@ import serveStatic from "serve-static";
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
-import Settings from "./models/settings";
+//import Settings from "./models/settings";
+import mongoose from "mongoose";
 
 
 
@@ -44,7 +45,9 @@ app.use("/subdata/*", shopify.validateAuthenticatedSession());
 app.use(express.json());
 
 // Connect to MongoDB
-const mongoURI = "mongodb://localhost:27017/shopify_subscription_app";
+//const mongoURI = "mongodb://localhost:27017/shopify_subscription_app";
+const mongoURI = "mongodb+srv://ranjeetgautam498:Y96LTNUCUTlfKg9j@shopifysubscription.ebrke.mongodb.net/shopify_subscription_app";
+
 
 mongoose.connect(mongoURI, {
     useNewUrlParser: true,
@@ -62,6 +65,14 @@ mongoose.connection.on('error', (err) => {
     console.error('Mongoose connection error:', err);
 });
 
+const SettingsSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  created_at: { type: Date, default: Date.now },
+});
+
+const Settings = mongoose.model("Settings", SettingsSchema);
+//module.exports = Settings;
 
 // Define the API endpoint to add settings
 app.post("/api/settings", async (req, res) => {
@@ -82,28 +93,6 @@ app.post("/api/settings", async (req, res) => {
   }
 });
 
-app.get("/subdata/subscription", async (req, res) => {
-  try {
-    console.log("Incoming request for subscription options");
-
-    const subscriptionOptions = [
-      {
-        id: 1,
-        name: "Monthly Subscription",
-        delivery_frequency: "30 days",
-        discount: 10,
-      },
-    ];
-
-    // Log the subscription options for debugging
-    console.log("Sending subscription options:", subscriptionOptions);
-
-    res.status(200).json(subscriptionOptions);
-  } catch (error) {
-    console.error("Error fetching subscription options:", error); // Log the error for debugging
-    res.status(500).send("Error fetching subscription options.");
-  }
-});
 
 
 app.use("/subdata/*", async (req, res, next) => {
@@ -151,163 +140,68 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
+
+
 // Handle creating a subscription plan
 const plans = [];
-
 // Handle creating a subscription plan
-app.post("/api/plans", async (req, res) => {
-  const { selling_plan_group } = req.body;
-  console.log('Received selling_plan_group data:', req.body);
+// app.post("/api/plans", async (req, res) => {
+//   const { selling_plan_group } = req.body;
+//   console.log('Received selling_plan_group data:', req.body);
 
-  if (!selling_plan_group || !selling_plan_group.name || !selling_plan_group.selling_plans) {
-    return res.status(400).send({ error: 'Invalid selling plan group data' });
-  }
+//   if (!selling_plan_group || !selling_plan_group.name || !selling_plan_group.selling_plans) {
+//     return res.status(400).send({ error: 'Invalid selling plan group data' });
+//   }
 
-  const newPlan = {
-    id: Date.now(),
-    selling_plan_group,
-  };
+//   const newPlan = {
+//     id: Date.now(),
+//     selling_plan_group,
+//   };
 
-  plans.push(newPlan);
-  res.status(201).json(newPlan);
+//   plans.push(newPlan);
+//   res.status(201).json(newPlan);
+// });
+
+const PlanSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  selling_plans: [
+      {
+          name: String,
+          price_adjustments: [{ adjustment_type: String, value: Number }],
+          delivery_policy: { interval: String, interval_count: Number }
+      }
+  ],
+  products: [{ type: String }],  // Change ObjectId to String here
 });
 
 
-// Handle fetching all subscription plans
-app.get("/api/plans", async (req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const plansWithProducts = [];
+// Create a model from the schema
+const Plan = mongoose.model('Plan', PlanSchema);
 
-    // Loop through your existing plans
-    for (const plan of plans) {
-      // Extract product IDs
-      const productIds = plan.selling_plan_group.products;
-
-      // Fetch product details for each product ID
-      const productsWithNames = await Promise.all(
-        productIds.map(async (productId) => {
-          try {
-            const productResponse = await shopify.api.rest.Product.find({
-              session,
-              id: productId,
-            });
-            return {
-              id: productId,
-              name: productResponse.title, // Get the product name
-            };
-          } catch (error) {
-            console.error(`Failed to fetch product ${productId}`);
-            return { id: productId, name: 'Unknown Product' }; // Handle failure
-          }
-        })
-      );
-
-      // Add the product names to the plan object
-      const planWithProductNames = {
-        ...plan,
-        product_names: productsWithNames,
-      };
-
-      plansWithProducts.push(planWithProductNames);
-    }
-
-    res.status(200).json(plansWithProducts); // Send updated plans with product names
-  } catch (error) {
-    console.error("Error fetching plans:", error);
-    res.status(500).send({ error: "Failed to fetch plans" });
-  }
-});
-
-
-// Handle deleting a subscription plan
-app.delete("/api/plans/:id", async (req, res) => {
-  const { id } = req.params;
-  const planIndex = plans.findIndex((plan) => plan.id == id);
-  if (planIndex !== -1) {
-    plans.splice(planIndex, 1);
-    return res.status(200).send({ success: true });
-  } else {
-    return res.status(404).send({ error: "Plan not found" });
-  }
-});
-
-// Handle edit a subscription plan
-app.get("/api/plans/:id", async (req, res) => {
-  const session = res.locals.shopify.session; // Shopify session
-  const { id } = req.params;
-
-  try {
-    // Find the plan by ID
-    const plan = plans.find((plan) => plan.id == id);
-    if (!plan) {
-      return res.status(404).send({ error: "Plan not found" });
-    }
-
-    // Fetch product details (name) for the products in the plan
-    const productIds = plan.selling_plan_group.products;
-    const productsWithNames = await Promise.all(
-      productIds.map(async (productId) => {
-        try {
-          const productResponse = await shopify.api.rest.Product.find({
-            session,
-            id: productId,
-          });
-          return {
-            id: productId,
-            name: productResponse.title, // Get product name
-          };
-        } catch (error) {
-          console.error(`Failed to fetch product ${productId}`);
-          return { id: productId, name: 'Unknown Product' };
-        }
-      })
-    );
-
-    // Return the plan with the product names included
-    const planWithProductNames = {
-      ...plan,
-      product_names: productsWithNames,
-    };
-
-    res.status(200).json(planWithProductNames);
-  } catch (error) {
-    console.error("Error fetching plan:", error);
-    res.status(500).send({ error: "Failed to fetch plan" });
-  }
-});
-
-// Handle update a subscription plan
-app.put("/api/plans/:id", async (req, res) => {
-  console.log("Update request received:", req.body);  // Log incoming data
-
-  const { id } = req.params;
+// Endpoint to save subscription plan
+app.post('/api/plans', async (req, res) => {
   const { selling_plan_group } = req.body;
 
   if (!selling_plan_group || !selling_plan_group.name || !selling_plan_group.selling_plans) {
-    return res.status(400).send({ error: 'Invalid selling plan group data' });
+      return res.status(400).send({ error: 'Invalid selling plan group data' });
   }
 
-  const planIndex = plans.findIndex((plan) => plan.id == id);
+  try {
+      // Create a new plan document
+      const newPlan = new Plan({
+          name: selling_plan_group.name,
+          selling_plans: selling_plan_group.selling_plans,
+          products: selling_plan_group.products,
+      });
 
-  if (planIndex !== -1) {
-    // Update the plan
-    plans[planIndex].selling_plan_group = selling_plan_group;
-    res.status(200).json(plans[planIndex]);
-  } else {
-    res.status(404).send({ error: "Plan not found" });
+      // Save the plan to the database
+      const savedPlan = await newPlan.save();
+      res.status(201).json(savedPlan);  // Send the saved plan in the response
+  } catch (error) {
+      console.error('Error saving plan to MongoDB:', error);  // Log the error to check what's going wrong
+      res.status(500).json({ error: 'Failed to save the plan: ' + error.message });
   }
 });
-
-app.get("/api/plans/:productId", async (req, res) => {
-  const { productId } = req.params;
-  const filteredPlans = plans.filter(plan =>
-    plan.selling_plan_group.selling_plans.some(sp => sp.product_id === productId)
-  );
-  res.status(200).json(filteredPlans);
-});
-// Assuming you have Express set up
-
 
 app.get('/apps/proxy', async (req, res) => {
   try {
@@ -320,6 +214,7 @@ app.get('/apps/proxy', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch subscription plans' });
   }
 });
+
 
 
 app.get("/api/products/count", async (_req, res) => {
