@@ -1,35 +1,49 @@
-<div class="purchase-options">
-  <h3>{{ block.settings.text }}</h3>
-  <div>
-    <input type="radio" id="one-time-purchase" name="purchaseOption" value="one-time" checked>
-    <label for="one-time-purchase">One-time purchase</label>
-  </div>
-
-    <div>
-      <input type="radio" id="subscription-{{ subscription_option.id }}" name="purchaseOption" value="{{ subscription_option.id }}">
-      <label for="subscription-{{ subscription_option.id }}">
-        Subscribe and save {{ subscription_option.name }} <br>
-        Delivery every {{ subscription_option.delivery_frequency }}, ₹{{ subscription_option.discount }} off
-      </label>
-    </div>
-</div>
-
-
+<section data-variant-id="40874345758793" class="shopify_subscriptions_app_block">
+    <fieldset class="shopify_subscriptions_fieldset">
+        <legend class="shopify_subscriptions_app__title" style="color: #6D7175;">
+            Purchase options
+        </legend>
+        <div style="border: 1px solid #8F8D8D; background: #FFFFFF; border-radius: 0px; color: #6D7175;">
+            <div class="shopify_subscriptions_app_block_label shopify_subscriptions_purchase_option_wrapper" style="border-bottom: 1px solid #8F8D8D;">
+                <label>
+                    <input type="radio" name="purchaseOption" id="one_time_purchase" data-radio-type="one_time_purchase" checked>
+                    One-time purchase
+                </label>
+                <div class="shopify_subscriptions_in_widget_price">Price: <span id="one_time_price">Loading...</span></div>
+            </div>
+            <div class="shopify_subscriptions_app_block_label">
+                <label>Subscribe and save</label>
+                <div id="subscription_price" class="shopify_subscriptions_in_widget_price">Price: <span id="subscribe_price">Loading...</span></div>
+                <ul class="shopify_subscriptions_app_block_label_children">
+                    <li>
+                        <label>
+                            <input type="radio" name="purchaseOption" id="weekly_subscription" data-radio-type="selling_plan">
+                            Delivery every week
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <p class="shopify_subscriptions_app_policy">
+            Auto-renews, skip or cancel anytime.
+        </p>
+    </fieldset>
+</section>
 
 
 {% schema %}
-  {
-    "name": "Mirai Subscription",
-    "target": "section",
-    "stylesheet": "sub-app.css",
-    "javascript": "sub-app.js",
-    "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "default": "Text block",
-          "label": "Text"
-        }
-    ]
-  }
+{
+  "name": "Mirai Subscription",
+  "target": "section",
+  "stylesheet": "sub-app.css",
+  "javascript": "sub-app.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "default": "Purchase Options",
+      "label": "Heading Text"
+    }
+  ]
+}
 {% endschema %}

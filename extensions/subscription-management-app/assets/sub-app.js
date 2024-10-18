@@ -1,17 +1,24 @@
-async function fetchSubscriptionOptions(shopDomain) {
-  try {
-    const response = await fetch(`/apps/subscription/subdata/subscription?shop=${shopDomain}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const subscriptionOptions = await response.json();
-    return subscriptionOptions;
-  } catch (error) {
-    console.error('Error fetching subscription options:', error);
+// sub-app.js
+async function fetchPlans() {
+  const response = await fetch('/api/plans');
+  if (!response.ok) {
+    console.error('Failed to fetch plans:', response.statusText);
+    return [];
   }
+  return response.json();
 }
 
-fetchSubscriptionOptions('{{ shop.permanent_domain }}')
-  .then(subscriptionOptions => {
-    console.log(subscriptionOptions); // You can then inject the data into your HTML
+// Call the fetchPlans function and handle the result
+fetchPlans().then(plans => {
+  const purchaseOptionsContainer = document.querySelector('.purchase-options');
+
+  // Loop through the plans and create HTML elements to display them
+  plans.forEach(plan => {
+    const planElement = document.createElement('div');
+    planElement.innerHTML = `
+      <input type="radio" id="${plan._id}" name="purchaseOption" value="${plan.name}">
+      <label for="${plan._id}">${plan.name}</label>
+    `;
+    purchaseOptionsContainer.appendChild(planElement);
   });
+});

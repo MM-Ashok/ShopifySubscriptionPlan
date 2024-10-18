@@ -202,19 +202,184 @@ app.post('/api/plans', async (req, res) => {
       res.status(500).json({ error: 'Failed to save the plan: ' + error.message });
   }
 });
-
-app.get('/apps/proxy', async (req, res) => {
+// Handle fetching all subscription plans
+app.get("/api/plans", async (req, res) => {
   try {
-    const response = await shopify.api.rest.SellingPlanGroup.all({
-      session: res.locals.shopify.session,
-    });
-    res.json(response); // Send the subscription plans to the frontend
+    const session = res.locals.shopify.session; // Ensure Shopify session is available
+
+    // Fetch all plans from MongoDB
+    const plans = await Plan.find({}); // Fetch all plans from MongoDB collection
+
+    const plansWithProducts = [];
+
+    // Loop through the plans
+    for (const plan of plans) {
+      const productIds = plan.products; // Assuming products is an array of strings
+
+      // Fetch product details for each product ID from Shopify
+      const productsWithNames = await Promise.all(
+        productIds.map(async (productId) => {
+          try {
+            // Fetch product details from Shopify API
+            const productResponse = await shopify.api.rest.Product.find({
+              session,
+              id: productId,
+            });
+
+            // Return product ID and name
+            return {
+              id: productId,
+              name: productResponse.title, // Get the product name from Shopify API
+            };
+          } catch (error) {
+            console.error(`Failed to fetch product ${productId}`, error);
+            return { id: productId, name: 'Unknown Product' }; // Handle failed fetch gracefully
+          }
+        })
+      );
+
+      // Create the plan object with product names
+      const planWithProductNames = {
+        _id: plan._id, // MongoDB plan ID
+        name: plan.name, // Plan name
+        selling_plans: plan.selling_plans, // Selling plan details
+        product_names: productsWithNames, // Add product names
+      };
+
+      plansWithProducts.push(planWithProductNames);
+    }
+
+    // Send the plans with product names back to the client
+    res.status(200).json(plansWithProducts);
   } catch (error) {
-    console.error('Error fetching subscription plans:', error);
-    res.status(500).json({ error: 'Failed to fetch subscription plans' });
+    console.error("Error fetching plans:", error);
+    res.status(500).send({ error: "Failed to fetch plans" });
   }
 });
 
+// DELETE route to remove a plan
+app.delete('/api/plans/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedPlan = await Plan.findByIdAndDelete(id);
+    if (deletedPlan) {
+      res.status(200).send({ message: 'Plan deleted successfully.' });
+    } else {
+      res.status(404).send({ error: 'Plan not found.' });
+    }
+  } catch (error) {
+    console.error('Error deleting plan:', error);
+    res.status(500).send({ error: 'Failed to delete plan.' });
+  }
+});
+// // PUT route to update a plan
+// app.get('/api/plans/:id', async (req, res) => {
+//   const { id } = req.params;
+//   const { shop } = req.query;  // Ensure the shop is provided in the request
+
+//   if (!shop) {
+//     return res.status(400).send({ error: 'No shop provided' });
+//   }
+
+//   try {
+//     const plan = await Plan.findById(id);
+
+//     if (!plan) {
+//       return res.status(404).send({ error: 'Plan not found.' });
+//     }
+
+//     res.status(200).json(plan); // Send the plan back
+//   } catch (error) {
+//     console.error('Error fetching plan:', error);
+//     res.status(500).send({ error: 'Failed to fetch plan.' });
+//   }
+// });
+app.get('/api/plans/:id', async (req, res) => {
+  const { id } = req.params;
+  const { shop } = req.query;  // Ensure the shop is provided in the request
+
+  if (!shop) {
+    return res.status(400).send({ error: 'No shop provided' });
+  }
+
+  try {
+    const session = res.locals.shopify.session; // Ensure Shopify session is available
+
+    // Fetch the plan by ID
+    const plan = await Plan.findById(id);
+
+    if (!plan) {
+      return res.status(404).send({ error: 'Plan not found.' });
+    }
+
+    // Fetch the product details for each product ID in the plan
+    const productsWithNames = await Promise.all(
+      plan.products.map(async (productId) => {
+        try {
+          // Fetch product details from Shopify API
+          const productResponse = await shopify.api.rest.Product.find({
+            session,
+            id: productId,
+          });
+
+          // Return product ID and name
+          return {
+            id: productId,
+            name: productResponse.title, // Get the product name from Shopify API
+          };
+        } catch (error) {
+          console.error(`Failed to fetch product ${productId}`, error);
+          return { id: productId, name: 'Unknown Product' }; // Handle failed fetch gracefully
+        }
+      })
+    );
+
+    // Create the response object with the plan details and product names
+    const planWithProductNames = {
+      _id: plan._id, // MongoDB plan ID
+      name: plan.name, // Plan name
+      selling_plans: plan.selling_plans, // Selling plan details
+      product_names: productsWithNames, // Add product names
+    };
+
+    res.status(200).json(planWithProductNames); // Send the plan back with product names
+  } catch (error) {
+    console.error('Error fetching plan:', error);
+    res.status(500).send({ error: 'Failed to fetch plan.' });
+  }
+});
+
+// PUT route to update a plan
+// app.put('/api/plans/:id', async (req, res) => {
+//   const { id } = req.params;
+//   const { selling_plan_group } = req.body;
+
+//   if (!selling_plan_group || !selling_plan_group.name || !selling_plan_group.selling_plans) {
+//     return res.status(400).send({ error: 'Invalid selling plan group data.' });
+//   }
+
+//   try {
+//     const updatedPlan = await Plan.findByIdAndUpdate(
+//       id,
+//       {
+//         name: selling_plan_group.name,
+//         selling_plans: selling_plan_group.selling_plans,
+//         products: selling_plan_group.products,
+//       },
+//       { new: true } // Return the updated document
+//     );
+
+//     if (!updatedPlan) {
+//       return res.status(404).send({ error: 'Plan not found.' });
+//     }
+
+//     res.status(200).json(updatedPlan); // Send the updated plan
+//   } catch (error) {
+//     console.error('Error updating plan:', error);
+//     res.status(500).json({ error: 'Failed to update the plan.' });
+//   }
+// });
 
 
 app.get("/api/products/count", async (_req, res) => {
